@@ -1,0 +1,3 @@
+# libffi-euphoria
+
+This project is an experiment in using [libffi](https://sourceware.org/libffi/) for calling external libraries with Euphoria. Specifically, Euphoria does not natively support passing or receiving structures by value and libffi does. This will make interfacing with several libraries a lot easier and in some cases, make interfacing possible where it was not possible before. The end goal is to build libffi into the backend of Euphoria and expose it via `machine_func()`, and then deprecate the existing `std/dll.e` routines.
