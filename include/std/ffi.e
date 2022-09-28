@@ -344,7 +344,7 @@ public constant
 	--** int 32-bits
 	C_INT        = ffi_type_sint,
 	--** bool 32-bits
-	C_BOOL       = ffi_type_sint,
+	C_BOOL       = ffi_type_schar,
 	--** unsigned int 32-bits
 	C_UINT       = ffi_type_uint,
 	--** long 32-bits except on 64-bit //Unix//, where it is 64-bits
