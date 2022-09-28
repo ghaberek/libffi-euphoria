@@ -599,32 +599,61 @@ public function get_struct_offsets( atom ctype, integer count, integer abi=FFI_D
 	return result
 end function
 
-public function peek_struct( atom ptr, atom ctype )
+public function peek_struct( atom ptr, object ctype )
 
-	sequence elements = get_struct_elements( ctype )
-	sequence offsets = get_struct_offsets( ctype, length(elements) )
+	integer element = 0
 
-	sequence values = repeat( NULL, length(elements) )
-
-	for i = 1 to length( elements ) do
-		values[i] = peek_type( ptr+offsets[i], elements[i] )
-	end for
-
-	return values
-end function
-
-public procedure poke_struct( atom ptr, atom ctype, sequence values )
-
-	sequence elements = get_struct_elements( ctype )
-	sequence offsets = get_struct_offsets( ctype, length(elements) )
-
-	if length( values ) < length( elements ) then
-		values &= repeat( NULL, length(elements)-length(values) )
+	if sequence( ctype ) then
+		element = ctype[2]
+		ctype = ctype[1]
 	end if
 
-	for i = 1 to length( elements ) do
-		poke_type( ptr+offsets[i], elements[i], values[i] )
-	end for
+	sequence elements = get_struct_elements( ctype )
+	sequence offsets = get_struct_offsets( ctype, length(elements) )
+
+	object result
+
+	if element then
+		result = peek_type( ptr+offsets[element], elements[element] )
+
+	else
+		result = repeat( NULL, length(elements) )
+
+		for i = 1 to length( elements ) do
+			result[i] = peek_type( ptr+offsets[i], elements[i] )
+		end for
+
+	end if
+
+	return result
+end function
+
+public procedure poke_struct( atom ptr, object ctype, object values )
+
+	integer element = 0
+
+	if sequence( ctype ) then
+		element = ctype[2]
+		ctype = ctype[1]
+	end if
+
+	sequence elements = get_struct_elements( ctype )
+	sequence offsets = get_struct_offsets( ctype, length(elements) )
+
+	if element then
+		poke_type( ptr+offsets[element], elements[element], values )
+
+	else
+
+		if length( values ) < length( elements ) then
+			values &= repeat( NULL, length(elements)-length(values) )
+		end if
+
+		for i = 1 to length( elements ) do
+			poke_type( ptr+offsets[i], elements[i], values[i] )
+		end for
+
+	end if
 
 end procedure
 
