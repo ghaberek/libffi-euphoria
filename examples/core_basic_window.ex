@@ -55,7 +55,6 @@ procedure main()
 
 		EndDrawing()
 		------------------------------------------------------------------------------------
-
 	end while
 
 	-- De-Initialization

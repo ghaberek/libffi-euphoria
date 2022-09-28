@@ -301,28 +301,170 @@ public constant RL_AUDIOSTREAM = define_c_type({
 	C_UINT     -- channels      // Number of channels (1-mono, 2-stereo, ...)
 })
 
+-- Keyboard keys (US keyboard layout)
+-- NOTE: Use GetKeyPressed() to allow redefining
+-- required keys for alternative layouts
+public enum type KeyboardKey
+	KEY_NULL            =   0,  -- Key: NULL, used for no key pressed
+	-- Alphanumeric keys
+	KEY_APOSTROPHE      =  39,  -- Key: '
+	KEY_COMMA           =  44,  -- Key: ,
+	KEY_MINUS           =  45,  -- Key: -
+	KEY_PERIOD          =  46,  -- Key: .
+	KEY_SLASH           =  47,  -- Key: /
+	KEY_ZERO            =  48,  -- Key: 0
+	KEY_ONE             =  49,  -- Key: 1
+	KEY_TWO             =  50,  -- Key: 2
+	KEY_THREE           =  51,  -- Key: 3
+	KEY_FOUR            =  52,  -- Key: 4
+	KEY_FIVE            =  53,  -- Key: 5
+	KEY_SIX             =  54,  -- Key: 6
+	KEY_SEVEN           =  55,  -- Key: 7
+	KEY_EIGHT           =  56,  -- Key: 8
+	KEY_NINE            =  57,  -- Key: 9
+	KEY_SEMICOLON       =  59,  -- Key: ;
+	KEY_EQUAL           =  61,  -- Key: =
+	KEY_A               =  65,  -- Key: A | a
+	KEY_B               =  66,  -- Key: B | b
+	KEY_C               =  67,  -- Key: C | c
+	KEY_D               =  68,  -- Key: D | d
+	KEY_E               =  69,  -- Key: E | e
+	KEY_F               =  70,  -- Key: F | f
+	KEY_G               =  71,  -- Key: G | g
+	KEY_H               =  72,  -- Key: H | h
+	KEY_I               =  73,  -- Key: I | i
+	KEY_J               =  74,  -- Key: J | j
+	KEY_K               =  75,  -- Key: K | k
+	KEY_L               =  76,  -- Key: L | l
+	KEY_M               =  77,  -- Key: M | m
+	KEY_N               =  78,  -- Key: N | n
+	KEY_O               =  79,  -- Key: O | o
+	KEY_P               =  80,  -- Key: P | p
+	KEY_Q               =  81,  -- Key: Q | q
+	KEY_R               =  82,  -- Key: R | r
+	KEY_S               =  83,  -- Key: S | s
+	KEY_T               =  84,  -- Key: T | t
+	KEY_U               =  85,  -- Key: U | u
+	KEY_V               =  86,  -- Key: V | v
+	KEY_W               =  87,  -- Key: W | w
+	KEY_X               =  88,  -- Key: X | x
+	KEY_Y               =  89,  -- Key: Y | y
+	KEY_Z               =  90,  -- Key: Z | z
+	KEY_LEFT_BRACKET    =  91,  -- Key: [
+	KEY_BACKSLASH       =  92,  -- Key: '\'
+	KEY_RIGHT_BRACKET   =  93,  -- Key: ]
+	KEY_GRAVE           =  96,  -- Key: `
+	-- Function keys
+	KEY_SPACE           =  32,  -- Key: Space
+	KEY_ESCAPE          = 256,  -- Key: Esc
+	KEY_ENTER           = 257,  -- Key: Enter
+	KEY_TAB             = 258,  -- Key: Tab
+	KEY_BACKSPACE       = 259,  -- Key: Backspace
+	KEY_INSERT          = 260,  -- Key: Ins
+	KEY_DELETE          = 261,  -- Key: Del
+	KEY_RIGHT           = 262,  -- Key: Cursor right
+	KEY_LEFT            = 263,  -- Key: Cursor left
+	KEY_DOWN            = 264,  -- Key: Cursor down
+	KEY_UP              = 265,  -- Key: Cursor up
+	KEY_PAGE_UP         = 266,  -- Key: Page up
+	KEY_PAGE_DOWN       = 267,  -- Key: Page down
+	KEY_HOME            = 268,  -- Key: Home
+	KEY_END             = 269,  -- Key: End
+	KEY_CAPS_LOCK       = 280,  -- Key: Caps lock
+	KEY_SCROLL_LOCK     = 281,  -- Key: Scroll down
+	KEY_NUM_LOCK        = 282,  -- Key: Num lock
+	KEY_PRINT_SCREEN    = 283,  -- Key: Print screen
+	KEY_PAUSE           = 284,  -- Key: Pause
+	KEY_F1              = 290,  -- Key: F1
+	KEY_F2              = 291,  -- Key: F2
+	KEY_F3              = 292,  -- Key: F3
+	KEY_F4              = 293,  -- Key: F4
+	KEY_F5              = 294,  -- Key: F5
+	KEY_F6              = 295,  -- Key: F6
+	KEY_F7              = 296,  -- Key: F7
+	KEY_F8              = 297,  -- Key: F8
+	KEY_F9              = 298,  -- Key: F9
+	KEY_F10             = 299,  -- Key: F10
+	KEY_F11             = 300,  -- Key: F11
+	KEY_F12             = 301,  -- Key: F12
+	KEY_LEFT_SHIFT      = 340,  -- Key: Shift left
+	KEY_LEFT_CONTROL    = 341,  -- Key: Control left
+	KEY_LEFT_ALT        = 342,  -- Key: Alt left
+	KEY_LEFT_SUPER      = 343,  -- Key: Super left
+	KEY_RIGHT_SHIFT     = 344,  -- Key: Shift right
+	KEY_RIGHT_CONTROL   = 345,  -- Key: Control right
+	KEY_RIGHT_ALT       = 346,  -- Key: Alt right
+	KEY_RIGHT_SUPER     = 347,  -- Key: Super right
+	KEY_KB_MENU         = 348,  -- Key: KB menu
+	-- Keypad keys
+	KEY_KP_0            = 320,  -- Key: Keypad 0
+	KEY_KP_1            = 321,  -- Key: Keypad 1
+	KEY_KP_2            = 322,  -- Key: Keypad 2
+	KEY_KP_3            = 323,  -- Key: Keypad 3
+	KEY_KP_4            = 324,  -- Key: Keypad 4
+	KEY_KP_5            = 325,  -- Key: Keypad 5
+	KEY_KP_6            = 326,  -- Key: Keypad 6
+	KEY_KP_7            = 327,  -- Key: Keypad 7
+	KEY_KP_8            = 328,  -- Key: Keypad 8
+	KEY_KP_9            = 329,  -- Key: Keypad 9
+	KEY_KP_DECIMAL      = 330,  -- Key: Keypad .
+	KEY_KP_DIVIDE       = 331,  -- Key: Keypad /
+	KEY_KP_MULTIPLY     = 332,  -- Key: Keypad *
+	KEY_KP_SUBTRACT     = 333,  -- Key: Keypad -
+	KEY_KP_ADD          = 334,  -- Key: Keypad +
+	KEY_KP_ENTER        = 335,  -- Key: Keypad Enter
+	KEY_KP_EQUAL        = 336   -- Key: Keypad =
+end type
+
+-- Mouse buttons
+public enum type MouseButton
+	MOUSE_BUTTON_LEFT    = 0,   -- Mouse button left
+	MOUSE_BUTTON_RIGHT   = 1,   -- Mouse button right
+	MOUSE_BUTTON_MIDDLE  = 2,   -- Mouse button middle (pressed wheel)
+	MOUSE_BUTTON_SIDE    = 3,   -- Mouse button side (advanced mouse device)
+	MOUSE_BUTTON_EXTRA   = 4,   -- Mouse button extra (advanced mouse device)
+	MOUSE_BUTTON_FORWARD = 5,   -- Mouse button fordward (advanced mouse device)
+	MOUSE_BUTTON_BACK    = 6    -- Mouse button back (advanced mouse device)
+end type
+
 -- Camera projection
 public enum type CameraProjection
 	CAMERA_PERSPECTIVE = 0,   -- Perspective projection
 	CAMERA_ORTHOGRAPHIC       -- Orthographic projection
 end type
 
-constant raylib = open_dll( "raylib.dll" ),
-	xInitWindow        = define_c_proc( raylib, "+InitWindow", {C_INT,C_INT,C_STRING} ),
-	xWindowShouldClose = define_c_func( raylib, "+WindowShouldClose", {}, C_BOOL ),
-	xCloseWindow       = define_c_proc( raylib, "+CloseWindow", {} ),
-	xGetWindowPosition = define_c_func( raylib, "+GetWindowPosition", {}, RL_VECTOR2 ),
-	xSetTargetFPS      = define_c_proc( raylib, "+SetTargetFPS", {C_INT} ),
-	xClearBackground   = define_c_proc( raylib, "+ClearBackground", {RL_COLOR} ),
-	xBeginDrawing      = define_c_proc( raylib, "+BeginDrawing", {} ),
-	xEndDrawing        = define_c_proc( raylib, "+EndDrawing", {} ),
-	xBeginMode3D       = define_c_proc( raylib, "+BeginMode3D", {RL_CAMERA3D} ),
-	xEndMode3D         = define_c_proc( raylib, "+EndMode3D", {} ),
-	xDrawFPS           = define_c_proc( raylib, "+DrawFPS", {C_INT,C_INT} ),
-	xDrawText          = define_c_proc( raylib, "+DrawText", {C_STRING,C_INT,C_INT,C_INT,RL_COLOR} ),
-	xDrawCube          = define_c_proc( raylib, "+DrawCube", {RL_VECTOR3,C_FLOAT,C_FLOAT,C_FLOAT,RL_COLOR} ),
-	xDrawCubeWires     = define_c_proc( raylib, "+DrawCubeWires", {RL_VECTOR3,C_FLOAT,C_FLOAT,C_FLOAT,RL_COLOR} ),
-	xDrawGrid          = define_c_proc( raylib, "+DrawGrid", {C_INT,C_FLOAT} ),
+export constant raylib = open_dll( "raylib.dll" ),
+	xInitWindow         = define_c_proc( raylib, "+InitWindow", {C_INT,C_INT,C_STRING} ),
+	xWindowShouldClose  = define_c_func( raylib, "+WindowShouldClose", {}, C_BOOL ),
+	xCloseWindow        = define_c_proc( raylib, "+CloseWindow", {} ),
+	xGetWindowPosition  = define_c_func( raylib, "+GetWindowPosition", {}, RL_VECTOR2 ),
+	xGetScreenToWorld2D = define_c_func( raylib, "+GetScreenToWorld2D", {RL_VECTOR2,RL_CAMERA2D}, RL_VECTOR2 ),
+	xSetTargetFPS       = define_c_proc( raylib, "+SetTargetFPS", {C_INT} ),
+	xGetRandomValue     = define_c_func( raylib, "+GetRandomValue", {C_INT,C_INT}, C_INT ),
+	xClearBackground    = define_c_proc( raylib, "+ClearBackground", {RL_COLOR} ),
+	xBeginDrawing       = define_c_proc( raylib, "+BeginDrawing", {} ),
+	xEndDrawing         = define_c_proc( raylib, "+EndDrawing", {} ),
+	xBeginMode2D        = define_c_proc( raylib, "+BeginMode2D", {RL_CAMERA2D} ),
+	xEndMode2D          = define_c_proc( raylib, "+EndMode2D", {} ),
+	xBeginMode3D        = define_c_proc( raylib, "+BeginMode3D", {RL_CAMERA3D} ),
+	xEndMode3D          = define_c_proc( raylib, "+EndMode3D", {} ),
+	xIsKeyPressed       = define_c_func( raylib, "+IsKeyPressed", {C_INT}, C_BOOL ),
+	xIsKeyDown          = define_c_func( raylib, "+IsKeyDown", {C_INT}, C_BOOL ),
+	xIsMouseButtonDown  = define_c_func( raylib, "+IsMouseButtonDown", {C_INT}, C_BOOL ),
+	xGetMousePosition   = define_c_func( raylib, "+GetMousePosition", {}, RL_VECTOR2 ),
+	xGetMouseDelta      = define_c_func( raylib, "+GetMouseDelta", {}, RL_VECTOR2 ),
+	xGetMouseWheelMove  = define_c_func( raylib, "+GetMouseWheelMove", {}, C_FLOAT ),
+	xDrawLine           = define_c_proc( raylib, "+DrawLine", {C_INT,C_INT,C_INT,C_INT,RL_COLOR} ),
+	xDrawCircle         = define_c_proc( raylib, "+DrawCircle", {C_INT,C_INT,C_FLOAT,RL_COLOR} ),
+	xDrawRectangle      = define_c_proc( raylib, "+DrawRectangle", {C_INT,C_INT,C_INT,C_INT,RL_COLOR} ),
+	xDrawRectangleRec   = define_c_proc( raylib, "+DrawRectangleRec", {RL_RECTANGLE,RL_COLOR} ),
+	xDrawRectangleLines = define_c_proc( raylib, "+DrawRectangleLines", {C_INT,C_INT,C_INT,C_INT,RL_COLOR} ),
+	xFade               = define_c_func( raylib, "+Fade", {RL_COLOR,C_FLOAT}, RL_COLOR ),
+	xDrawFPS            = define_c_proc( raylib, "+DrawFPS", {C_INT,C_INT} ),
+	xDrawText           = define_c_proc( raylib, "+DrawText", {C_STRING,C_INT,C_INT,C_INT,RL_COLOR} ),
+	xDrawCube           = define_c_proc( raylib, "+DrawCube", {RL_VECTOR3,C_FLOAT,C_FLOAT,C_FLOAT,RL_COLOR} ),
+	xDrawCubeWires      = define_c_proc( raylib, "+DrawCubeWires", {RL_VECTOR3,C_FLOAT,C_FLOAT,C_FLOAT,RL_COLOR} ),
+	xDrawGrid           = define_c_proc( raylib, "+DrawGrid", {C_INT,C_FLOAT} ),
 $
 
 public procedure InitWindow( integer width, integer height, sequence title )
@@ -341,9 +483,17 @@ public function GetWindowPosition()
 	return c_func( xGetWindowPosition, {} ) -- returns {x,y}
 end function
 
+public function GetScreenToWorld2D( sequence position, sequence camera )
+	return c_func( xGetScreenToWorld2D, {position,camera} )
+end function
+
 public procedure SetTargetFPS( integer fps )
 	c_proc( xSetTargetFPS, {fps} )
 end procedure
+
+public function GetRandomValue( integer min, integer max )
+	return c_func( xGetRandomValue, {min,max} )
+end function
 
 public procedure ClearBackground( sequence color )
 	c_proc( xClearBackground, {color} ) -- color is {r,g,b,a}
@@ -357,6 +507,14 @@ public procedure EndDrawing()
 	c_proc( xEndDrawing, {} )
 end procedure
 
+public procedure BeginMode2D( sequence camera )
+	c_proc( xBeginMode2D, {camera} )
+end procedure
+
+public procedure EndMode2D()
+	c_proc( xEndMode2D, {} )
+end procedure
+
 public procedure BeginMode3D( sequence camera )
 	c_proc( xBeginMode3D, {camera} )
 end procedure
@@ -364,6 +522,54 @@ end procedure
 public procedure EndMode3D()
 	c_proc( xEndMode3D, {} )
 end procedure
+
+public function IsKeyPressed( integer key )
+	return c_func( xIsKeyPressed, {key} )
+end function
+
+public function IsKeyDown( integer key )
+	return c_func( xIsKeyDown, {key} )
+end function
+
+public function IsMouseButtonDown( integer button )
+	return c_func( xIsMouseButtonDown, {button} )
+end function
+
+public function GetMousePosition()
+	return c_func( xGetMousePosition, {} )
+end function
+
+public function GetMouseDelta()
+	return c_func( xGetMouseDelta, {} )
+end function
+
+public function GetMouseWheelMove()
+	return c_func( xGetMouseWheelMove, {} )
+end function
+
+public procedure DrawLine( integer startPosX, integer startPosY, integer endPosX, integer endPosY, sequence color )
+	c_proc( xDrawLine, {startPosX,startPosY,endPosX,endPosY,color} )
+end procedure
+
+public procedure DrawCircle( integer centerX, integer centerY, atom radius, sequence color )
+	c_proc( xDrawCircle, {centerX,centerY,radius,color} )
+end procedure
+
+public procedure DrawRectangle( integer posX, integer posY, integer width, integer height, sequence color )
+	c_proc( xDrawRectangle, {posX,posY,width,height,color} )
+end procedure
+
+public procedure DrawRectangleRec( sequence rec, sequence color )
+	c_proc( xDrawRectangleRec, {rec,color} )
+end procedure
+
+public procedure DrawRectangleLines( integer posX, integer posY, integer width, integer height, sequence color )
+	c_proc( xDrawRectangleLines, {posX,posY,width,height,color} )
+end procedure
+
+public function Fade( sequence color, atom alpha )
+	return c_func( xFade, {color,alpha} )
+end function
 
 public procedure DrawFPS( integer posX, integer posY )
 	c_proc( xDrawFPS, {posX,posY} )
