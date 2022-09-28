@@ -56,7 +56,7 @@ ifdef WINDOWS then
 
 	ifdef X86_64 then
 		with define X86_WIN64
-	elsifdef X86_32 then
+	elsifdef X86 then
 		with define X86_WIN32
 	end ifdef
 
