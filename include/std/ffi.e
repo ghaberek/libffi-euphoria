@@ -60,7 +60,7 @@ ifdef WINDOWS then
 		with define X86_WIN32
 	end ifdef
 
-	constant libffi = machine_func( M_OPEN_DLL, "libffi-8.dll" ),
+	constant libffi_name = "libffi-8.dll",
 		kernel32 = machine_func( M_OPEN_DLL, "kernel32.dll" ),
 		xLoadLibrary = machine_func( M_DEFINE_C, {kernel32,"LoadLibraryA",{#03000001},#03000001} ),
 		xGetProcAddress = machine_func( M_DEFINE_C, {kernel32,"GetProcAddress",{#03000001,#03000001},#03000001} )
@@ -69,12 +69,18 @@ elsedef
 
 	constant RTLD_LAZY = 0x00001, RTLD_GLOBAL = 0x00100
 
-	constant libffi = machine_func( M_OPEN_DLL, "libffi.so" ),
+	constant libffi_name = "libffi.so.8",
 		libdl = machine_func( M_OPEN_DLL, "libdl.so.2" ),
 		_dlopen = machine_func( M_DEFINE_C, {libdl,"dlopen",{#03000001,#01000004},#03000001} ),
 		_dlsym = machine_func( M_DEFINE_C, {libdl,"dlsym",{#03000001,#03000001},#03000001} )
 
 end ifdef
+
+constant libffi = machine_func( M_OPEN_DLL, libffi_name )
+
+if not libffi then
+	machine_proc( M_CRASH, sprintf("%s not found!",{libffi_name}) )
+end if
 
 constant
 	_ffi_closure_alloc = machine_func( M_DEFINE_C, {libffi,"+ffi_closure_alloc",
@@ -173,7 +179,7 @@ elsifdef X86_WIN32 then
 		FFI_LAST_ABI,
 		FFI_DEFAULT_ABI = FFI_MS_CDECL
 
-elsedef -- X86? aarch64?
+elsifdef X86 then
 
 	--**
 	-- @nodoc@
@@ -189,9 +195,13 @@ elsedef -- X86? aarch64?
 		FFI_LAST_ABI,
 		FFI_DEFAULT_ABI = FFI_SYSV
 
+elsedef -- ARM? AARCH64?
+
+	machine_proc( M_CRASH, "Platform not yet supported by std/ffi.e" )
+
 end ifdef
 
-ifdef BITS64 then
+ifdef X86_64 then
 
 	constant
 		ffi_type__size      =  0, -- size_t
@@ -209,7 +219,7 @@ ifdef BITS64 then
 		ffi_cif__flags      = 28, -- unsigned int
 		SIZEOF_FFI_CIF      = 32
 
-elsedef -- BITS32
+elsifdef X86 then
 
 	constant
 		ffi_type__size      =  0, -- size_t
@@ -226,6 +236,10 @@ elsedef -- BITS32
 		ffi_cif__bytes      = 16, -- unsigned int
 		ffi_cif__flags      = 20, -- unsigned int
 		SIZEOF_FFI_CIF      = 24
+
+elsedef
+
+	-- TBD
 
 end ifdef
 
