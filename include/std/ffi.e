@@ -497,10 +497,6 @@ public function peek_type( atom ptr, atom ctype )
 	integer type_id = typeof( ctype )
 
 	switch type_id with fallthru do
-	--	case FFI_TYPE_VOID then -- 0 (undefined)
-	--		return 0
-	--	case FFI_TYPE_INT then -- 1 (deprecated)
-	--		return 0
 		case FFI_TYPE_FLOAT then -- 2
 			return machine_func( M_F32_TO_A, peek({ptr,4}) )
 		case FFI_TYPE_DOUBLE then -- 3
@@ -517,6 +513,7 @@ public function peek_type( atom ptr, atom ctype )
 			return peek2s( ptr )
 		case FFI_TYPE_UINT32 then -- 9
 			return peek4u( ptr )
+		case FFI_TYPE_INT then -- 1 (deprecated?)
 		case FFI_TYPE_SINT32 then -- 10
 			return peek4s( ptr )
 		case FFI_TYPE_UINT64 then -- 11
@@ -525,6 +522,7 @@ public function peek_type( atom ptr, atom ctype )
 			return peek8s( ptr )
 		case FFI_TYPE_STRUCT then -- 13
 			return peek_struct( ptr, ctype )
+		case FFI_TYPE_VOID then -- 0 (undefined?)
 		case FFI_TYPE_POINTER then -- 14
 			return peek_pointer( ptr )
 	end switch
@@ -538,10 +536,6 @@ public procedure poke_type( atom ptr, atom ctype, object value )
 	integer type_id = typeof( ctype )
 
 	switch type_id with fallthru do
-	--	case FFI_TYPE_VOID then -- 0 (undefined)
-	--		return
-	--	case FFI_TYPE_INT then -- 1 (deprecated)
-	--		return
 		case FFI_TYPE_FLOAT then -- 2
 			poke( ptr, machine_func(M_A_TO_F32,value) )
 			return
@@ -559,6 +553,7 @@ public procedure poke_type( atom ptr, atom ctype, object value )
 		case FFI_TYPE_SINT16 then -- 8
 			poke2( ptr, value )
 			return
+		case FFI_TYPE_INT then -- 1 (deprecated?)
 		case FFI_TYPE_UINT32 then -- 9
 		case FFI_TYPE_SINT32 then -- 10
 			poke4( ptr, value )
@@ -570,6 +565,7 @@ public procedure poke_type( atom ptr, atom ctype, object value )
 		case FFI_TYPE_STRUCT then -- 13
 			poke_struct( ptr, ctype, value )
 			return
+		case FFI_TYPE_VOID then -- 0 (undefined?)
 		case FFI_TYPE_POINTER then -- 14
 			poke_pointer( ptr, value )
 			return
