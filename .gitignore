@@ -1,1 +1,5 @@
+libffi-*/
+raylib-*/
+*.tar.gz
+*.zip
 ex.err
