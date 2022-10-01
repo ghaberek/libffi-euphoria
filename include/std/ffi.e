@@ -866,11 +866,11 @@ override function c_func( integer rid, sequence args )
 				args[i] = allocate_wstring( args[i] )
 			end if
 
-			atom arg = machine_func( M_ALLOC, sizeof(arg_types[i]) )
-			poke_type( arg, arg_types[i], args[i] )
+			atom parg = machine_func( M_ALLOC, sizeof(arg_types[i]) )
+			poke_type( parg, arg_types[i], args[i] )
 
-			poke_pointer( pargs+SIZEOF_POINTER*(i-1), arg )
-			pfree &= arg
+			poke_pointer( pargs+SIZEOF_POINTER*(i-1), parg )
+			pfree &= parg
 
 		end for
 
