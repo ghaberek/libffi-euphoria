@@ -203,6 +203,10 @@ end ifdef
 
 ifdef X86_64 then
 
+	--**
+	-- @nodoc@
+	public constant FFI_TRAMPOLINE_SIZE = 32
+
 	constant
 		ffi_type__size      =  0, -- size_t
 		ffi_type__alignment =  8, -- unsigned short
@@ -219,7 +223,19 @@ ifdef X86_64 then
 		ffi_cif__flags      = 28, -- unsigned int
 		SIZEOF_FFI_CIF      = 32
 
+	constant
+		ffi_closure__tramp     =  0, -- char[FFI_TRAMPOLINE_SIZE]
+		ffi_closure__ftramp    =  0, -- void*
+		ffi_closure__cif       = 32, -- ffi_cif*
+		ffi_closure__fun       = 40, -- void(*fun)(ffi_cif*,void*,void**,void*)
+		ffi_closure__user_data = 48, -- void*
+		SIZEOF_FFI_CLOSURE     = 56
+
 elsifdef X86 then
+
+	--**
+	-- @nodoc@
+	public constant FFI_TRAMPOLINE_SIZE = 16
 
 	constant
 		ffi_type__size      =  0, -- size_t
@@ -236,6 +252,14 @@ elsifdef X86 then
 		ffi_cif__bytes      = 16, -- unsigned int
 		ffi_cif__flags      = 20, -- unsigned int
 		SIZEOF_FFI_CIF      = 24
+
+	constant
+		ffi_closure__tramp     =  0, -- char[FFI_TRAMPOLINE_SIZE]
+		ffi_closure__ftramp    =  0, -- void*
+		ffi_closure__cif       = 16, -- ffi_cif*
+		ffi_closure__fun       = 20, -- void(*fun)(ffi_cif*,void*,void**,void*)
+		ffi_closure__user_data = 24, -- void*
+		SIZEOF_FFI_CLOSURE     = 28
 
 elsedef
 
@@ -921,4 +945,80 @@ override procedure c_proc( integer rid, sequence args )
 	object void = c_func( rid, args )
 
 end procedure
+
+function closure_func( atom cif, atom prvalue, atom pargs, atom id )
+
+	atom nargs = peek4u( cif + ffi_cif__nargs )
+	atom parg_types = peek_pointer( cif + ffi_cif__arg_types )
+	atom rtype = peek_pointer( cif + ffi_cif__rtype )
+
+	sequence args = repeat( NULL, nargs )
+	sequence arg_types = peek_pointer({ parg_types, nargs })
+
+	for i = 1 to nargs do
+		atom parg = peek_pointer( pargs+SIZEOF_POINTER*(i-1) )
+		args[i] = peek_type( parg, arg_types[i] )
+	end for
+
+	object rvalue = call_func( id, args )
+
+	if rtype != C_VOID then
+		poke_type( prvalue, rtype, rvalue )
+	end if
+
+	return NULL
+end function
+constant CLOSURE_FUNC = machine_func( M_CALL_BACK, routine_id("closure_func") )
+
+public function call_back( object id, object arg_types=C_VOID, atom rtype=C_INT )
+
+	if equal( arg_types, C_VOID ) then
+		return machine_func( M_CALL_BACK, id )
+	end if
+
+ifdef WINDOWS and BITS32 then
+	integer abi = FFI_STDCALL
+elsedef
+	integer abi = FFI_DEFAULT_ABI
+end ifdef
+
+	if sequence( id ) and id[1] = '+' then
+
+		ifdef WINDOWS and BITS32 then
+			abi = FFI_MS_CDECL
+		end ifdef
+
+		id = id[2]
+
+	end if
+
+	atom parg_types = NULL
+	atom nargs = length( arg_types )
+
+	if nargs then
+		parg_types = machine_func( M_ALLOC, SIZEOF_POINTER*nargs )
+		poke_pointer( parg_types, arg_types )
+	end if
+
+	atom cif = machine_func( M_ALLOC, SIZEOF_FFI_CIF )
+	atom cif_status = eu:c_func( _ffi_prep_cif, {cif,abi,nargs,rtype,parg_types} )
+
+	if cif_status != FFI_OK then
+		machine_proc( M_CRASH, sprintf("ffi_prep_cif() returned %s (%d)\n",{ffi_errors[cif_status],cif_status}) )
+	end if
+
+	atom pmemory = machine_func( M_ALLOC, SIZEOF_POINTER )
+	atom closure = eu:c_func( _ffi_closure_alloc, {SIZEOF_FFI_CLOSURE,pmemory} )
+
+	atom codeloc = peek_pointer( pmemory )
+	atom loc_status = eu:c_func( _ffi_prep_closure_loc, {closure,cif,CLOSURE_FUNC,id,codeloc} )
+
+	machine_proc( M_FREE, pmemory )
+
+	if loc_status != FFI_OK then
+		machine_proc( M_CRASH, sprintf("ffi_prep_closure_loc() returned %s (%d)\n",{ffi_errors[loc_status],loc_status}) )
+	end if
+
+	return codeloc
+end function
 
