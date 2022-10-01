@@ -310,7 +310,9 @@ type string( object x )
 	return 1
 end type
 
-sequence m_funcs = {}
+sequence m_funcs = {
+	0 -- skip -1, which indicates an error
+}
 sequence m_types = {
 	ffi_type_void,
 	ffi_type_uint8,
@@ -819,6 +821,9 @@ end ifdef
 	end if
 
 	m_funcs = append( m_funcs, {fn,cif,name} )
+
+	-- N.B. we return a negative integer to differentiate between routines defined
+	-- with dll:define_c_func/proc (positive) and ffi:define_c_func/proc (negative)
 
 	return length( m_funcs ) * -1
 end function
