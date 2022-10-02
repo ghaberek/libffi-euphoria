@@ -473,10 +473,13 @@ public constant
 	FFI_TYPE_COMPLEX    = 15
 
 --**
--- Returns the size of the specified data type in bytes.
+-- Get the size of the specified data type.
 --
 -- Parameters:
 -- # ##ctype## A C data type constant
+--
+-- Returns:
+--   The size of the specified data type in bytes.
 --
 override function sizeof( atom ctype )
 
@@ -493,10 +496,13 @@ override function sizeof( atom ctype )
 end function
 
 --**
--- Returns the type ID of the specified data type.
+-- Get the type ID of the specified data type.
 --
 -- Parameters:
 -- # ##ctype## A C data type constant
+--
+-- Returns:
+--   The type ID of the specified data type.
 --
 public function typeof( atom ctype )
 	return peek2u( ctype + ffi_type__type )
@@ -516,6 +522,9 @@ public constant NULL = 0
 --****
 -- === Routines
 
+--**
+-- Read a value of the specified type from memory.
+--
 public function peek_type( atom ptr, atom ctype )
 
 	integer type_id = typeof( ctype )
@@ -555,6 +564,9 @@ public function peek_type( atom ptr, atom ctype )
 
 end function
 
+--**
+-- Write a value of the specified type into memory.
+--
 public procedure poke_type( atom ptr, atom ctype, object value )
 
 	integer type_id = typeof( ctype )
@@ -599,6 +611,9 @@ public procedure poke_type( atom ptr, atom ctype, object value )
 
 end procedure
 
+--**
+-- Get a sequence of the types comprising a structure.
+--
 public function get_struct_elements( atom ctype )
 
 	atom elements = peek_pointer( ctype + ffi_type__elements )
@@ -622,6 +637,9 @@ public function get_struct_elements( atom ctype )
 	return result
 end function
 
+--**
+-- Get a sequence of the element offsets (in bytes) of a structure.
+--
 public function get_struct_offsets( atom ctype, integer count, integer abi=FFI_DEFAULT_ABI )
 
 	atom buffer = machine_func( M_ALLOC, SIZEOF_POINTER*count )
@@ -635,6 +653,9 @@ public function get_struct_offsets( atom ctype, integer count, integer abi=FFI_D
 	return result
 end function
 
+--**
+-- Read the values of a structure from memory.
+--
 public function peek_struct( atom ptr, object ctype )
 
 	integer element = 0
@@ -664,6 +685,9 @@ public function peek_struct( atom ptr, object ctype )
 	return result
 end function
 
+--**
+-- Write the values of a structure into memory.
+--
 public procedure poke_struct( atom ptr, object ctype, object values )
 
 	integer element = 0
@@ -693,6 +717,9 @@ public procedure poke_struct( atom ptr, object ctype, object values )
 
 end procedure
 
+--**
+-- Allocate space for a structure and, optionally, fill it with values.
+--
 public function allocate_struct( atom ctype, sequence values={} )
 
 	atom ptr = machine_func( M_ALLOC, sizeof(ctype) )
@@ -704,6 +731,9 @@ public function allocate_struct( atom ctype, sequence values={} )
 	return ptr
 end function
 
+--**
+-- Open a shared library and return its handle.
+--
 public function open_dll( sequence name )
 
 	atom lib = NULL
@@ -733,6 +763,9 @@ public function open_dll( sequence name )
 	return lib
 end function
 
+--**
+-- Get the address of a symbol in a shared library.
+--
 public function define_c_var( atom lib, sequence name )
 
 	atom addr = NULL
@@ -749,6 +782,9 @@ public function define_c_var( atom lib, sequence name )
 	return addr
 end function
 
+--**
+-- Create a new C type definition (typically a structure made up of several types).
+--
 public function define_c_type( object elements, integer abi=FFI_DEFAULT_ABI )
 
 	atom ctype = machine_func( M_ALLOC, SIZEOF_FFI_TYPE )
@@ -792,6 +828,9 @@ public function define_c_type( object elements, integer abi=FFI_DEFAULT_ABI )
 	return ctype
 end function
 
+--**
+-- Define the arguments and return types of a C function.
+--
 public function define_c_func( atom lib, sequence name, sequence arg_types, atom rtype )
 
 ifdef WINDOWS and BITS32 then
@@ -848,10 +887,16 @@ end ifdef
 	return length( m_funcs ) * -1
 end function
 
+--**
+-- Define the arguments of a C procedure.
+--
 public function define_c_proc( atom lib, sequence name, sequence arg_types )
 	return define_c_func( lib, name, arg_types, C_VOID )
 end function
 
+--**
+-- Call a C function and return the value.
+--
 override function c_func( integer rid, sequence args )
 
 	if rid > 0 then
@@ -935,6 +980,9 @@ override function c_func( integer rid, sequence args )
 	return rvalue
 end function
 
+--**
+-- Call a C procedure.
+--
 override procedure c_proc( integer rid, sequence args )
 
 	if rid > 0 then
@@ -978,6 +1026,9 @@ function closure_func( atom cif, atom prvalue, atom pargs, atom id )
 end function
 constant CLOSURE_FUNC = machine_func( M_CALL_BACK, routine_id("closure_func") )
 
+--**
+-- Return the memory address for a Euphoria routine.
+--
 public function call_back( object id, object arg_types=C_VOID, atom rtype=C_INT )
 
 	if equal( arg_types, C_VOID ) then
