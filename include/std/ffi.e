@@ -956,8 +956,16 @@ function closure_func( atom cif, atom prvalue, atom pargs, atom id )
 	sequence arg_types = peek_pointer({ parg_types, nargs })
 
 	for i = 1 to nargs do
+
 		atom parg = peek_pointer( pargs+SIZEOF_POINTER*(i-1) )
 		args[i] = peek_type( parg, arg_types[i] )
+
+		if arg_types[i] = C_STRING then
+			args[i] = peek_string( args[i] )
+		elsif arg_types[i] = C_WSTRING then
+			args[i] = peek_wstring( args[i] )
+		end if
+
 	end for
 
 	object rvalue = call_func( id, args )
