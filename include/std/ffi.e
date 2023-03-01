@@ -148,7 +148,8 @@ ifdef X86_WIN64 then
 		FFI_WIN64,      /* sizeof(long double) == 8  - microsoft compilers */
 		FFI_GNUW64,     /* sizeof(long double) == 16 - GNU compilers */
 		FFI_LAST_ABI,
-		FFI_DEFAULT_ABI = FFI_GNUW64
+	--	FFI_DEFAULT_ABI = FFI_GNUW64
+		FFI_DEFAULT_ABI = FFI_WIN64
 
 elsifdef X86_64 then
 
@@ -833,7 +834,7 @@ end function
 --
 public function define_c_func( atom lib, sequence name, sequence arg_types, atom rtype )
 
-ifdef WINDOWS and BITS32 then
+ifdef X86_WIN32 then
 	integer abi = FFI_STDCALL
 elsedef
 	integer abi = FFI_DEFAULT_ABI
@@ -841,8 +842,10 @@ end ifdef
 
 	if name[1] = '+' then
 
-		ifdef WINDOWS and BITS32 then
+		ifdef X86_WIN32 then
 			abi = FFI_MS_CDECL
+		elsifdef X86_WIN64 then
+			abi = FFI_GNUW64
 		end ifdef
 
 		name = name[2..$]
