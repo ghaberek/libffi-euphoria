@@ -35,14 +35,16 @@ public constant IUP_VERSION_DATE = "2020/07/30" /* does not include bug fix rele
 
 public function IupOpen( atom argc=0, object argv=NULL )
 
-	if atom( argv ) then
-		argv = command_line()
-		argc = length( argv )
-	end if
+--	if atom( argv ) then
+--		argv = command_line()
+--		argc = length( argv )
+--	end if
 
-	atom pargc = allocate_data( sizeof(C_INT) )
-	atom pargv = allocate_string_pointer_array( argv )
-	poke4( pargc, argc )
+--	atom pargc = allocate_data( sizeof(C_INT) )
+--	atom pargv = allocate_string_pointer_array( argv )
+--	poke4( pargc, argc )
+
+	atom pargc = 0, pargv = NULL
 
 	return c_func( xIupOpen, {pargc,pargv} )
 end function
