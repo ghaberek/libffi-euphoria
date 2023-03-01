@@ -488,12 +488,7 @@ override function sizeof( atom ctype )
 		return eu:sizeof( ctype )
 	end if
 
-	ifdef BITS64 then
-		return peek8u( ctype + ffi_type__size )
-	elsedef
-		return peek4u( ctype + ffi_type__size )
-	end ifdef
-
+	return peek_pointer( ctype + ffi_type__size )
 end function
 
 --**
