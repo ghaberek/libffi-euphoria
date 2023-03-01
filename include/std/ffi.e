@@ -449,11 +449,11 @@ public constant
 
 --****
 -- === C Type Identifiers
--- These values are returned by [[:typeof]] to identify the simple type of the
+-- These values are returned by [[:type_id]] to identify the simple type of the
 -- parameter type constants listed above or created using [[:define_c_type]].
 --
 -- See Also:
---   [[:define_c_type]], [[:typeof]]
+--   [[:define_c_type]], [[:type_id]]
 
 public constant
 	FFI_TYPE_VOID       =  0,
@@ -500,7 +500,7 @@ end function
 -- Returns:
 --   The type ID of the specified data type.
 --
-public function typeof( atom ctype )
+public function type_id( atom ctype )
 	return peek2u( ctype + ffi_type__type )
 end function
 
@@ -523,9 +523,9 @@ public constant NULL = 0
 --
 public function peek_type( atom ptr, atom ctype )
 
-	integer type_id = typeof( ctype )
+	integer id = type_id( ctype )
 
-	switch type_id with fallthru do
+	switch id with fallthru do
 		case FFI_TYPE_FLOAT then -- 2
 			return machine_func( M_F32_TO_A, peek({ptr,4}) )
 		case FFI_TYPE_DOUBLE then -- 3
@@ -556,7 +556,7 @@ public function peek_type( atom ptr, atom ctype )
 			return peek_pointer( ptr )
 	end switch
 
-	machine_proc( M_CRASH, sprintf("Unknown type ID %d",type_id) )
+	machine_proc( M_CRASH, sprintf("Unknown type ID %d",id) )
 
 end function
 
@@ -565,9 +565,9 @@ end function
 --
 public procedure poke_type( atom ptr, atom ctype, object value )
 
-	integer type_id = typeof( ctype )
+	integer id = type_id( ctype )
 
-	switch type_id with fallthru do
+	switch id with fallthru do
 		case FFI_TYPE_FLOAT then -- 2
 			poke( ptr, machine_func(M_A_TO_F32,value) )
 			return
@@ -603,7 +603,7 @@ public procedure poke_type( atom ptr, atom ctype, object value )
 			return
 	end switch
 
-	machine_proc( M_CRASH, sprintf("Unknown type ID %d",type_id) )
+	machine_proc( M_CRASH, sprintf("Unknown type ID %d",id) )
 
 end procedure
 
