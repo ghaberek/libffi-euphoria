@@ -338,6 +338,8 @@ end type
 sequence m_funcs = {
 	0 -- skip -1, which indicates an error
 }
+sequence m_structs = {}
+sequence m_unions = {}
 sequence m_types = {
 	ffi_type_void,
 	ffi_type_uint8,
@@ -610,23 +612,23 @@ end procedure
 --**
 -- Get a sequence of the types comprising a structure.
 --
-public function get_struct_elements( atom ctype )
+public function get_struct_members( atom ctype )
 
-	atom elements = peek_pointer( ctype + ffi_type__elements )
+	atom members = peek_pointer( ctype + ffi_type__elements )
 
-	if elements = NULL then
+	if members = NULL then
 		return {}
 	end if
 
-	atom element = NULL
+	atom member = NULL
 	sequence result = {}
 
-	while element with entry do
-		result = append( result, element )
-		elements += SIZEOF_POINTER
+	while member with entry do
+		result = append( result, member )
+		members += SIZEOF_POINTER
 
 	entry
-		element = peek_pointer( elements )
+		member = peek_pointer( members )
 
 	end while
 
@@ -634,17 +636,28 @@ public function get_struct_elements( atom ctype )
 end function
 
 --**
--- Get a sequence of the element offsets (in bytes) of a structure.
+-- Get a sequence of the member offsets (in bytes) of a structure.
 --
-public function get_struct_offsets( atom ctype, integer count, integer abi=FFI_DEFAULT_ABI )
+public function get_struct_offsets( atom ctype, integer count=0 )
 
-	atom buffer = machine_func( M_ALLOC, SIZEOF_POINTER*count )
+	if count = 0 then
+		sequence members = get_struct_members( ctype )
+		count = length( members )
+	end if
 
-	eu:c_func( _ffi_get_struct_offsets, {abi,ctype,buffer} )
+	sequence result = repeat( 0, count )
 
-	sequence result = peek_pointer({ buffer, count })
+	if type_id( ctype ) = FFI_TYPE_STRUCT then
 
-	machine_proc( M_FREE, buffer )
+		atom buffer = machine_func( M_ALLOC, SIZEOF_POINTER*count )
+		eu:c_func( _ffi_get_struct_offsets, {FFI_DEFAULT_ABI,ctype,buffer} )
+
+		for i = 1 to count do
+			result[i] = peek_pointer( buffer + SIZEOF_POINTER*(i-1) )
+		end for
+
+		machine_proc( M_FREE, buffer )
+	end if
 
 	return result
 end function
@@ -652,64 +665,106 @@ end function
 --**
 -- Read the values of a structure from memory.
 --
-public function peek_struct( atom ptr, object ctype )
+public function peek_struct( atom ptr, atom ctype )
 
-	integer element = 0
+	sequence members = get_struct_members( ctype )
+	sequence offsets = get_struct_offsets( ctype, length(members) )
 
-	if sequence( ctype ) then
-		element = ctype[2]
-		ctype = ctype[1]
-	end if
+	sequence result = repeat( NULL, length(members) )
 
-	sequence elements = get_struct_elements( ctype )
-	sequence offsets = get_struct_offsets( ctype, length(elements) )
-
-	object result
-
-	if element then
-		result = peek_type( ptr+offsets[element], elements[element] )
-
-	else
-		result = repeat( NULL, length(elements) )
-
-		for i = 1 to length( elements ) do
-			result[i] = peek_type( ptr+offsets[i], elements[i] )
-		end for
-
-	end if
+	for i = 1 to length( members ) do
+		result[i] = peek_type( ptr+offsets[i], members[i] )
+	end for
 
 	return result
 end function
 
 --**
--- Write the values of a structure into memory.
+-- Read the value of a structure member from memory.
 --
-public procedure poke_struct( atom ptr, object ctype, object values )
+public function peek_member( atom ptr, atom ctype, object member )
 
-	integer element = 0
+	sequence members = get_struct_members( ctype )
+	sequence offsets = get_struct_offsets( ctype, length(members) )
 
-	if sequence( ctype ) then
-		element = ctype[2]
-		ctype = ctype[1]
+	if atom( member ) then
+		member = {member}
 	end if
 
-	sequence elements = get_struct_elements( ctype )
-	sequence offsets = get_struct_offsets( ctype, length(elements) )
+	for i = 1 to length( member ) do
 
-	if element then
-		poke_type( ptr+offsets[element], elements[element], values )
-
-	else
-
-		if length( values ) < length( elements ) then
-			values &= repeat( NULL, length(elements)-length(values) )
+		if member[i] > length( offsets ) then
+			machine_proc( M_CRASH, sprintf("Member offset out of bounds: %d",i) )
 		end if
 
-		for i = 1 to length( elements ) do
-			poke_type( ptr+offsets[i], elements[i], values[i] )
-		end for
+		ptr += offsets[member[i]]
+		ctype = members[member[i]]
 
+		if type_id( ctype ) != FFI_TYPE_STRUCT then
+			exit
+		end if
+
+		members = get_struct_members( ctype )
+		offsets = get_struct_offsets( ctype, length(members) )
+
+	end for
+
+	return peek_type( ptr, ctype )
+end function
+
+--**
+-- Write the values of a structure into memory.
+--
+public procedure poke_struct( atom ptr, atom ctype, object values )
+
+	sequence members = get_struct_members( ctype )
+	sequence offsets = get_struct_offsets( ctype, length(members) )
+
+	if atom( values ) then
+		values = {values}
 	end if
+
+	if length( values ) < length( members ) then
+		values &= repeat( NULL, length(members)-length(values) )
+	end if
+
+	for i = 1 to length( members ) do
+		poke_type( ptr+offsets[i], members[i], values[i] )
+	end for
+
+end procedure
+
+--**
+-- Write the value of a structure member into memory.
+--
+public procedure poke_member( atom ptr, atom ctype, object member, object value )
+
+	sequence members = get_struct_members( ctype )
+	sequence offsets = get_struct_offsets( ctype, length(members) )
+
+	if atom( member ) then
+		member = {member}
+	end if
+
+	for i = 1 to length( member ) do
+
+		if member[i] > length( offsets ) then
+			machine_proc( M_CRASH, sprintf("Member offset %d out of bounds",member[i]) )
+		end if
+
+		ptr += offsets[member[i]]
+		ctype = members[member[i]]
+
+		if type_id( ctype ) != FFI_TYPE_STRUCT then
+			exit
+		end if
+
+		members = get_struct_members( ctype )
+		offsets = get_struct_offsets( ctype, length(members) )
+
+	end for
+
+	poke_type( ptr, ctype, value )
 
 end procedure
 
@@ -718,7 +773,10 @@ end procedure
 --
 public function allocate_struct( atom ctype, sequence values={} )
 
-	atom ptr = machine_func( M_ALLOC, sizeof(ctype) )
+	atom size = sizeof( ctype )
+	atom ptr = machine_func( M_ALLOC, size )
+
+	mem_set( ptr, NULL, size )
 
 	if ptr and length( values ) then
 		poke_struct( ptr, ctype, values )
@@ -779,49 +837,96 @@ public function define_c_var( atom lib, sequence name )
 end function
 
 --**
--- Create a new C type definition (typically a structure made up of several types).
+-- Create a C structure definition comprised of one or more sequential C types.
 --
-public function define_c_type( object elements, integer abi=FFI_DEFAULT_ABI )
+public function define_c_struct( sequence members, integer abi=FFI_DEFAULT_ABI )
 
-	atom ctype = machine_func( M_ALLOC, SIZEOF_FFI_TYPE )
+	for i = 1 to length( members ) do
+		if sequence( members[i] ) then
+			members[i] = define_c_struct( repeat(members[i][1],members[i][2]) )
+		end if
+	end for
 
-	if atom( elements ) then
+	atom pstruct = define_c_type( 0, 0, FFI_TYPE_STRUCT, members )
+	atom status = eu:c_func( _ffi_get_struct_offsets, {abi,pstruct,NULL} )
 
-		mem_copy( ctype, elements, SIZEOF_FFI_TYPE )
-
-	else
-
-		for i = 1 to length( elements ) do
-			if sequence( elements[i] ) then
-				elements[i] = define_c_type( repeat(elements[i][1],elements[i][2]), abi )
-			end if
-		end for
-
-		atom nelements = length( elements )
-		atom pelements = machine_func( M_ALLOC, SIZEOF_POINTER*(nelements+1) )
-		poke_pointer( pelements, elements )
-		poke_pointer( pelements+(SIZEOF_POINTER*nelements), 0 )
-
-		poke_pointer( ctype + ffi_type__size, 0 )
-		       poke2( ctype + ffi_type__alignment, 0 )
-		       poke2( ctype + ffi_type__type, FFI_TYPE_STRUCT )
-		poke_pointer( ctype + ffi_type__elements, pelements )
-
+	if status != FFI_OK then
+		machine_proc( M_CRASH, sprintf("ffi_get_struct_offsets() returned %s (%d)",{ffi_errors[status],status}) )
 	end if
 
-	if typeof( ctype ) = FFI_TYPE_STRUCT then
+	m_structs = append( m_structs, {pstruct,abi} )
 
-		atom status = eu:c_func( _ffi_get_struct_offsets, {abi,ctype,NULL} )
+	return pstruct
+end function
 
-		if status != FFI_OK then
-			machine_proc( M_CRASH, sprintf("ffi_get_struct_offsets() returned %s (%d)",{ffi_errors[status],status}) )
+--**
+-- Create a C union definition comprised of one or more overlapping C types.
+--
+public function define_c_union( sequence members, integer abi=FFI_DEFAULT_ABI )
+
+	integer maxsize = 0
+
+	for i = 1 to length( members ) do
+
+		if sequence( members[i] ) then
+			members[i] = define_c_struct( repeat(members[i][1],members[i][2]) )
 		end if
 
+		integer size = sizeof( members[i] )
+
+		if size > maxsize then
+			maxsize = size
+		end if
+
+	end for
+
+	atom punion = define_c_type( 0, 0, FFI_TYPE_STRUCT, members )
+	atom status = eu:c_func( _ffi_get_struct_offsets, {abi,punion,NULL} )
+
+	if status != FFI_OK then
+		machine_proc( M_CRASH, sprintf("ffi_get_struct_offsets() returned %s (%d)",{ffi_errors[status],status}) )
 	end if
 
-	m_types = append( m_types, ctype )
+	poke_pointer( punion + ffi_type__size, maxsize )
 
-	return ctype
+	m_unions = append( m_unions, {punion,abi} )
+
+	return punion
+end function
+
+--**
+-- Create a C type definition. Typically this is not necessary unless you need
+-- to create a unique copy of an existing type, which is how ##C_STRING## and
+-- ##C_WSTRING## are created, as copies of ##C_POINTER##. This is also used
+-- internally by [[:define_c_struct]] and [[:define_c_union]].
+--
+public function define_c_type( atom size, integer alignment=0, integer ctype=0, object members={} )
+
+	atom ptype = machine_func( M_ALLOC, SIZEOF_FFI_TYPE )
+	atom pmembers = NULL
+
+	if find( size, m_types ) and alignment = 0 and ctype = 0 then
+
+		mem_copy( ptype, size, SIZEOF_FFI_TYPE )
+
+	elsif sequence( members ) and length( members ) then
+
+		integer nmembers = length( members )
+		pmembers = machine_func( M_ALLOC, SIZEOF_POINTER*(nmembers+1) )
+
+		poke_pointer( pmembers, members )
+		poke_pointer( pmembers+(SIZEOF_POINTER*nmembers), NULL )
+
+	end if
+
+	poke_pointer( ptype + ffi_type__size, size )
+		   poke2( ptype + ffi_type__alignment, alignment )
+		   poke2( ptype + ffi_type__type, ctype )
+	poke_pointer( ptype + ffi_type__elements, pmembers )
+
+	m_types = append( m_types, ptype )
+
+	return ptype
 end function
 
 --**
@@ -903,6 +1008,10 @@ override function c_func( integer rid, sequence args )
 
 	rid = rid * -1
 
+	if length( m_funcs ) < rid or atom( m_funcs[rid] ) then
+		machine_proc( M_CRASH, sprintf("c_proc/c_func: bad routine number (%d)",rid) )
+	end if
+
 	atom fn       = m_funcs[rid][1]
 	atom cif      = m_funcs[rid][2]
 	sequence name = m_funcs[rid][3]
@@ -912,7 +1021,7 @@ override function c_func( integer rid, sequence args )
 	atom rtype = peek_pointer( cif + ffi_cif__rtype )
 
 	if length( args ) != nargs then
-		machine_proc( M_CRASH, sprintf("C function '%s' expects %d args, not %d",{name,nargs,length(args)}) )
+		machine_proc( M_CRASH, sprintf("C routine %s() needs %d argument(s), not %d",{name,nargs,length(args)}) )
 	end if
 
 	atom pargs = NULL
@@ -940,7 +1049,6 @@ override function c_func( integer rid, sequence args )
 			pfree &= parg
 
 		end for
-
 
 	end if
 
