@@ -903,7 +903,6 @@ end function
 public function define_c_type( atom size, integer alignment=0, integer ctype=0, object members={} )
 
 	atom ptype = machine_func( M_ALLOC, SIZEOF_FFI_TYPE )
-	atom pmembers = NULL
 
 	if find( size, m_types ) and alignment = 0 and ctype = 0 then
 
@@ -912,17 +911,17 @@ public function define_c_type( atom size, integer alignment=0, integer ctype=0, 
 	elsif sequence( members ) and length( members ) then
 
 		integer nmembers = length( members )
-		pmembers = machine_func( M_ALLOC, SIZEOF_POINTER*(nmembers+1) )
+		atom pmembers = machine_func( M_ALLOC, SIZEOF_POINTER*(nmembers+1) )
 
 		poke_pointer( pmembers, members )
 		poke_pointer( pmembers+(SIZEOF_POINTER*nmembers), NULL )
 
-	end if
+		poke_pointer( ptype + ffi_type__size, size )
+			   poke2( ptype + ffi_type__alignment, alignment )
+			   poke2( ptype + ffi_type__type, ctype )
+		poke_pointer( ptype + ffi_type__elements, pmembers )
 
-	poke_pointer( ptype + ffi_type__size, size )
-		   poke2( ptype + ffi_type__alignment, alignment )
-		   poke2( ptype + ffi_type__type, ctype )
-	poke_pointer( ptype + ffi_type__elements, pmembers )
+	end if
 
 	m_types = append( m_types, ptype )
 
